@@ -1,4 +1,4 @@
 [build]
-  command = "node scripts/prepare-site.mjs"
-  publish = "dist"
+  command = ""
+  publish = "frontend"
 
