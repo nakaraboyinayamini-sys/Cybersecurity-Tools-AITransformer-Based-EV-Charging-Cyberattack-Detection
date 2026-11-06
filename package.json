@@ -1,0 +1,1 @@
+{"name":"ev-cyber-defense","private":true,"type":"module","scripts":{"test":"node --test tests/*.test.mjs","check":"tsc --noEmit"},"dependencies":{"@netlify/database":"^2.0.2","drizzle-orm":"^1.0.0-beta.22","papaparse":"^5.7.0"},"devDependencies":{"@types/node":"^26.6.6","drizzle-kit":"^1.0.0-beta.22","typescript":"^7.0.2"}}
