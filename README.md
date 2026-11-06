@@ -85,6 +85,12 @@ flowchart LR
 
 ## 6. Quick Start Guide
 
+### Netlify deployment
+
+Netlify publishes the browser dashboard using `netlify.toml`. The publish directory is `frontend`, which contains a static `index.html` and the browser assets. No build command is required. Python sources, datasets, and model weights are outside the publish directory. The server-rendered template remains in `frontend/templates/index.html`; keep changes to the dashboard HTML in sync with `frontend/index.html`.
+
+The FastAPI/PyTorch server requires a separate Python runtime and is not started by Netlify static hosting. Without a reachable API, the dashboard displays an offline message; simulations, telemetry, and logs remain unavailable. Running `python run_server.py` serves both the dashboard and API locally. When FastAPI serves the dashboard from a separate API origin, its `API_URL` setting controls the injected browser API address, and `CORS_ORIGINS` must allow that dashboard origin. The static Netlify dashboard currently uses same-origin `/api` requests and needs an API proxy before live features can work there.
+
 ### Step 1: Open Terminal in Project Directory
 ```powershell
 cd C:\Users\N.YAMINI\.gemini\antigravity\scratch\ev_charging_transformer_defense
