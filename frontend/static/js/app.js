@@ -11,6 +11,15 @@ const API_BASE = (typeof window !== "undefined" && window.__API_BASE__ && window
     ? window.__API_BASE__.trim().replace(/\/+$/, "")
     : "";
 
+async function fetchJSON(url, options = {}) {
+    const response = await fetch(url, { ...options, signal: options.signal || AbortSignal.timeout(120000) });
+    if (!response.ok) throw new Error(`Request failed (${response.status}). Check the backend connection.`);
+    if (!response.headers.get('content-type')?.includes('application/json')) {
+        throw new Error('The API returned a web page instead of JSON. Check the backend connection.');
+    }
+    return response;
+}
+
 const ATTACK_COLORS = {
     "NORMAL": { bg: "bg-emerald-500/20", border: "border-emerald-500", text: "text-emerald-400", hex: "#10b981" },
     "DoS ATTACK": { bg: "bg-red-500/20", border: "border-red-500", text: "text-red-400", hex: "#ef4444" },
@@ -29,7 +38,7 @@ const SEVERITY_BADGES = {
 // --- Main App Component ---
 function App() {
     const [activeTab, setActiveTab] = useState("overview");
-    const [systemStatus, setSystemStatus] = useState({ online: true, mode: "Simulated Data" });
+    const [systemStatus, setSystemStatus] = useState({ online: false, checking: true });
     const [analytics, setAnalytics] = useState(null);
     const [modelInfo, setModelInfo] = useState(null);
     const [isSimulating, setIsSimulating] = useState(false);
@@ -43,12 +52,18 @@ function App() {
     // Refresh dashboard data
     const fetchAnalytics = async () => {
         try {
-            const res = await fetch(`${API_BASE}/api/analytics/overview`);
+            const res = await fetchJSON(`${API_BASE}/api/analytics/overview`);
             const json = await res.json();
             if (json.status === "success") {
                 setAnalytics(json.data);
+                const health = await (await fetchJSON(`${API_BASE}/api/status`)).json();
+                setSystemStatus({ online: health.ai_engine === 'ONLINE' && health.model_loaded, checking: false });
+            } else {
+                throw new Error('Analytics are unavailable.');
             }
         } catch (err) {
+            setSystemStatus({ online: false, checking: false });
+            setIsSimulating(false);
             console.error("Error loading analytics:", err);
         }
     };
@@ -56,7 +71,7 @@ function App() {
     // Refresh model information
     const fetchModelInfo = async () => {
         try {
-            const res = await fetch(`${API_BASE}/api/model/info`);
+            const res = await fetchJSON(`${API_BASE}/api/model/info`);
             const json = await res.json();
             if (json.status === "success") {
                 setModelInfo(json.data);
@@ -96,7 +111,7 @@ function App() {
             setTimeout(() => setActivePipelineStage(5), 1000);
 
             const url = `${API_BASE}/api/telemetry/simulate?attack_type=${encodeURIComponent(attackType)}${targetStation ? `&station_id=${targetStation}` : ""}`;
-            const res = await fetch(url, { method: "POST" });
+            const res = await fetchJSON(url, { method: "POST" });
             const data = await res.json();
             if (data.status === "success") {
                 setLastInjectedEvent(data.data);
@@ -108,6 +123,8 @@ function App() {
             }
         } catch (err) {
             console.error("Simulation error:", err);
+            setIsSimulating(false);
+            showNotification(err.message, "danger");
         }
     };
 
@@ -119,7 +136,7 @@ function App() {
     // Open Station Drilldown Modal
     const handleStationClick = async (stationId) => {
         try {
-            const res = await fetch(`${API_BASE}/api/stations/${stationId}`);
+            const res = await fetchJSON(`${API_BASE}/api/stations/${stationId}`);
             const json = await res.json();
             if (json.status === "success") {
                 setStationModalData(json.data);
@@ -172,10 +189,10 @@ function App() {
                         </span>
 
                         {/* AI Engine Status Indicator */}
-                        <div className="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-emerald-950/60 border border-emerald-500/40">
-                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 pulse-glow-green"></span>
-                            <span className="text-xs font-mono font-bold tracking-wider text-emerald-400">
-                                AI ENGINE: ONLINE
+                        <div className="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700" role="status">
+                            <span className={`w-2.5 h-2.5 rounded-full ${systemStatus.online ? 'bg-emerald-400' : 'bg-amber-400'}`}></span>
+                            <span className="text-xs font-mono font-bold tracking-wider">
+                                AI ENGINE: {systemStatus.checking ? 'CONNECTING' : systemStatus.online ? 'ONLINE' : 'OFFLINE'}
                             </span>
                         </div>
 
@@ -222,6 +239,11 @@ function App() {
 
             {/* MAIN CONTENT AREA */}
             <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 space-y-6">
+                {!systemStatus.checking && !systemStatus.online && (
+                    <div role="alert" className="p-4 rounded-lg border border-amber-500/50 bg-amber-950/30 text-amber-200 text-sm">
+                        The inference backend is unavailable. Live telemetry, simulations, and security logs require the Python API server. Retrying the connection automatically.
+                    </div>
+                )}
                 {activeTab === "overview" && (
                     <OverviewView 
                         analytics={analytics} 
@@ -781,7 +803,7 @@ function AIModelView({ modelInfo, onRetrainComplete }) {
     const [isRetraining, setIsRetraining] = useState(false);
     const [selectedAttentionClass, setSelectedAttentionClass] = useState("DoS ATTACK");
 
-    const overall = modelInfo?.overall_metrics || { accuracy: 100.0, precision: 100.0, recall: 100.0, f1_score: 100.0 };
+    const overall = modelInfo?.overall_metrics || { accuracy: '—', precision: '—', recall: '—', f1_score: '—' };
     const perClass = modelInfo?.per_class_metrics || {};
     const cm = modelInfo?.confusion_matrix || [];
     const cmLabels = modelInfo?.confusion_matrix_labels || ["NORMAL", "DoS", "DATA TAMPER", "UNAUTH", "MALWARE"];
@@ -791,7 +813,7 @@ function AIModelView({ modelInfo, onRetrainComplete }) {
     const handleRetrain = async () => {
         setIsRetraining(true);
         try {
-            const res = await fetch(`${API_BASE}/api/model/retrain?epochs=15&samples=3500`, { method: "POST" });
+            const res = await fetchJSON(`${API_BASE}/api/model/retrain?epochs=15&samples=3500`, { method: "POST" });
             const json = await res.json();
             if (json.status === "success") {
                 onRetrainComplete();
@@ -1022,7 +1044,7 @@ function LiveDemoView({ isSimulating, setIsSimulating, simSpeed, setSimSpeed, tr
         formData.append("file", file);
 
         try {
-            const res = await fetch(`${API_BASE}/api/telemetry/upload-csv`, {
+            const res = await fetchJSON(`${API_BASE}/api/telemetry/upload-csv`, {
                 method: "POST",
                 body: formData
             });
@@ -1419,7 +1441,7 @@ function SecurityLogsView() {
             if (severityFilter !== "ALL") params.append("severity", severityFilter);
             if (stationFilter !== "ALL") params.append("station_id", stationFilter);
 
-            const res = await fetch(`${API_BASE}/api/logs?${params.toString()}`);
+            const res = await fetchJSON(`${API_BASE}/api/logs?${params.toString()}`);
             const json = await res.json();
             if (json.status === "success") {
                 setLogs(json.data);
@@ -1438,7 +1460,7 @@ function SecurityLogsView() {
     const handleClearLogs = async () => {
         if (!confirm("Are you sure you want to clear all security logs?")) return;
         try {
-            await fetch(`${API_BASE}/api/logs/clear`, { method: "DELETE" });
+            await fetchJSON(`${API_BASE}/api/logs/clear`, { method: "DELETE" });
             fetchLogs();
         } catch (err) {
             console.error(err);

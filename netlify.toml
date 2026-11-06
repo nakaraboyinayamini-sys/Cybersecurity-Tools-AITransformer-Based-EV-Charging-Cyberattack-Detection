@@ -1,0 +1,4 @@
+[build]
+  command = "node scripts/prepare-site.mjs"
+  publish = "dist"
+

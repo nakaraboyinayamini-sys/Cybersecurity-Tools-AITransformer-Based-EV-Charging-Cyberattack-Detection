@@ -64,7 +64,7 @@
     <!-- Environment Configuration & API Injection -->
     <script>
         // Injected environment variable for production API URL, or fallback to current host
-        window.__API_BASE__ = "{{ api_base_url | default('', true) }}";
+        window.__API_BASE__ = {{ api_base_url | tojson }};
     </script>
 
     <!-- Application Script -->
