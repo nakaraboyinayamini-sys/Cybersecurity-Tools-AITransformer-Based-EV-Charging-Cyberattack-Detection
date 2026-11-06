@@ -85,6 +85,31 @@ flowchart LR
 
 ## 6. Quick Start Guide
 
+### Netlify production deployment
+
+This is a FastAPI application with a CDN-loaded React frontend, rather than a
+Vite or Next.js project. Netlify serves the frontend as static files; it does
+not launch `run_server.py` or render the Jinja template at request time.
+
+`netlify.toml` sets the repository root as the base, uses
+`node scripts/build-frontend.mjs` as the build command, and publishes `dist`.
+The command renders `frontend/templates/index.html` to `dist/index.html` and
+copies the existing assets to `dist/static`, preserving the website design.
+It checks that the entry point and its referenced local assets exist before
+the deployment proceeds. Only generated frontend files are published.
+
+The tabs use React state rather than URL routing, so no SPA wildcard redirect
+is required. A wildcard redirect would not fix an absent root HTML file and
+could hide missing API routes behind an HTML response.
+
+The dashboard's Python API must run on a reachable backend host. Set the public
+backend origin in `API_URL` for the Netlify build and allow the Netlify frontend
+origin through the backend's existing `CORS_ORIGINS` setting. `API_URL` is public
+frontend configuration and must never contain credentials. If it is omitted,
+the frontend retains its existing same-origin `/api` behavior; this requires
+an API deployment or proxy, which this repository does not currently provide.
+Publishing the frontend alone does not deploy the FastAPI/PyTorch/SQLite backend.
+
 ### Step 1: Open Terminal in Project Directory
 ```powershell
 cd C:\Users\N.YAMINI\.gemini\antigravity\scratch\ev_charging_transformer_defense
