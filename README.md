@@ -92,6 +92,7 @@ cd C:\Users\N.YAMINI\.gemini\antigravity\scratch\ev_charging_transformer_defense
 
 ### Step 2: Launch the Master Server
 ```powershell
+python -m pip install -r backend/requirements.txt
 python run_server.py
 ```
 
@@ -115,3 +116,27 @@ python run_server.py
 4. **AI Transformer Model View**: Walk through the 5x5 confusion matrix, training loss curves, and the feature self-attention weights bar chart.
 5. **Security Event Log**: Search, filter by severity, and click **Download CSV Audit Log** to export the incident trail.
 
+
+## Netlify deployment
+
+The hosted dashboard is served from `public/`, with same-origin API routes implemented in
+`netlify/functions/api.mts`. Netlify Database stores stations, telemetry, alerts and security
+logs; the checked-in Drizzle migrations are applied automatically during deployment.
+The Python FastAPI application remains available for local development and training.
+
+The hosted inference runtime uses the original trained Transformer parameters and fitted
+scaler exported into `server/model.json`. It performs feature tokenization, both attention
+layers, and classification directly in JavaScript. It does not infer predictions from the
+simulation label. The metrics shown are the original synthetic validation results, not
+measurements of real-world detection accuracy.
+
+Run `npm install`, `npm test`, and `npm run check` to validate the hosted implementation.
+Run `netlify dev --port 8889` to preview using the platform runtime. A fresh database receives
+six stations; use the Simulation Lab to generate telemetry. CSV uploads accept up to 250
+records per request and files up to 2 MB. Log searches and exports cover the latest 2,000 events.
+
+Model retraining requires the local Python environment. After retraining, run
+`PYTHONPATH=. python scripts/export_model.py` to refresh the hosted parameters. Hosted
+retraining is disabled because the Node Functions runtime cannot execute PyTorch training.
+The hosted dashboard assets live in `public/`; keep its app script synchronized with
+`frontend/static/js/app.js` when changing the shared dashboard.

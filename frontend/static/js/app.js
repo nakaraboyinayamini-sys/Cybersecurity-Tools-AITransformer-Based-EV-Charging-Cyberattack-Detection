@@ -6,6 +6,21 @@
 const { useState, useEffect, useRef, useMemo } = React;
 
 // --- Helper Utilities ---
+// Surface network and API failures to every dashboard view.
+async function apiFetch(url, options) {
+    try {
+        const response = await fetch(url, options);
+        if (!response.ok) {
+            const body = await response.json().catch(() => ({}));
+            throw new Error(body.detail || `Request failed (${response.status})`);
+        }
+        return response;
+    } catch (error) {
+        window.dispatchEvent(new CustomEvent("api-error", { detail: error.message }));
+        throw error;
+    }
+}
+
 // Configurable API Base: Uses environment-injected API base URL or defaults to relative same-origin path
 const API_BASE = (typeof window !== "undefined" && window.__API_BASE__ && window.__API_BASE__.trim() !== "")
     ? window.__API_BASE__.trim().replace(/\/+$/, "")
@@ -43,7 +58,7 @@ function App() {
     // Refresh dashboard data
     const fetchAnalytics = async () => {
         try {
-            const res = await fetch(`${API_BASE}/api/analytics/overview`);
+            const res = await apiFetch(`${API_BASE}/api/analytics/overview`);
             const json = await res.json();
             if (json.status === "success") {
                 setAnalytics(json.data);
@@ -56,7 +71,7 @@ function App() {
     // Refresh model information
     const fetchModelInfo = async () => {
         try {
-            const res = await fetch(`${API_BASE}/api/model/info`);
+            const res = await apiFetch(`${API_BASE}/api/model/info`);
             const json = await res.json();
             if (json.status === "success") {
                 setModelInfo(json.data);
@@ -68,10 +83,12 @@ function App() {
 
     // Initial load
     useEffect(() => {
+        const onError = event => showNotification(event.detail, "danger");
+        window.addEventListener("api-error", onError);
         fetchAnalytics();
         fetchModelInfo();
         const interval = setInterval(fetchAnalytics, 3500);
-        return () => clearInterval(interval);
+        return () => { clearInterval(interval); window.removeEventListener("api-error", onError); };
     }, []);
 
     // Simulation auto-tick loop
@@ -96,7 +113,7 @@ function App() {
             setTimeout(() => setActivePipelineStage(5), 1000);
 
             const url = `${API_BASE}/api/telemetry/simulate?attack_type=${encodeURIComponent(attackType)}${targetStation ? `&station_id=${targetStation}` : ""}`;
-            const res = await fetch(url, { method: "POST" });
+            const res = await apiFetch(url, { method: "POST" });
             const data = await res.json();
             if (data.status === "success") {
                 setLastInjectedEvent(data.data);
@@ -119,7 +136,7 @@ function App() {
     // Open Station Drilldown Modal
     const handleStationClick = async (stationId) => {
         try {
-            const res = await fetch(`${API_BASE}/api/stations/${stationId}`);
+            const res = await apiFetch(`${API_BASE}/api/stations/${stationId}`);
             const json = await res.json();
             if (json.status === "success") {
                 setStationModalData(json.data);
@@ -282,7 +299,7 @@ function App() {
 
             {/* FOOTER */}
             <footer className="border-t border-slate-800/80 bg-[#070b14] py-4 text-center text-xs text-slate-500 font-mono">
-                Academic Cybersecurity Prototype • Transformer-Based EV Charging Cyber Attack Detection • Powered by PyTorch & FastAPI
+                Academic Cybersecurity Prototype • Transformer-Based EV Charging Cyber Attack Detection • Trained with PyTorch • Synthetic telemetry prototype
             </footer>
         </div>
     );
@@ -791,7 +808,7 @@ function AIModelView({ modelInfo, onRetrainComplete }) {
     const handleRetrain = async () => {
         setIsRetraining(true);
         try {
-            const res = await fetch(`${API_BASE}/api/model/retrain?epochs=15&samples=3500`, { method: "POST" });
+            const res = await apiFetch(`${API_BASE}/api/model/retrain?epochs=15&samples=3500`, { method: "POST" });
             const json = await res.json();
             if (json.status === "success") {
                 onRetrainComplete();
@@ -828,7 +845,7 @@ function AIModelView({ modelInfo, onRetrainComplete }) {
                         </span>
                         <button
                             onClick={handleRetrain}
-                            disabled={isRetraining}
+                            disabled={isRetraining || window.__NETLIFY_HOSTED__}
                             className="btn-cyber-primary px-4 py-2 rounded-lg text-xs font-mono font-bold text-white flex items-center space-x-2"
                         >
                             {isRetraining ? (
@@ -837,7 +854,7 @@ function AIModelView({ modelInfo, onRetrainComplete }) {
                                     <span>Retraining PyTorch...</span>
                                 </>
                             ) : (
-                                <span>Retrain Prototype Model</span>
+                                <span>{window.__NETLIFY_HOSTED__ ? "Retraining available locally" : "Retrain Prototype Model"}</span>
                             )}
                         </button>
                     </div>
@@ -1022,7 +1039,7 @@ function LiveDemoView({ isSimulating, setIsSimulating, simSpeed, setSimSpeed, tr
         formData.append("file", file);
 
         try {
-            const res = await fetch(`${API_BASE}/api/telemetry/upload-csv`, {
+            const res = await apiFetch(`${API_BASE}/api/telemetry/upload-csv`, {
                 method: "POST",
                 body: formData
             });
@@ -1419,7 +1436,7 @@ function SecurityLogsView() {
             if (severityFilter !== "ALL") params.append("severity", severityFilter);
             if (stationFilter !== "ALL") params.append("station_id", stationFilter);
 
-            const res = await fetch(`${API_BASE}/api/logs?${params.toString()}`);
+            const res = await apiFetch(`${API_BASE}/api/logs?${params.toString()}`);
             const json = await res.json();
             if (json.status === "success") {
                 setLogs(json.data);
@@ -1438,7 +1455,7 @@ function SecurityLogsView() {
     const handleClearLogs = async () => {
         if (!confirm("Are you sure you want to clear all security logs?")) return;
         try {
-            await fetch(`${API_BASE}/api/logs/clear`, { method: "DELETE" });
+            await apiFetch(`${API_BASE}/api/logs/clear`, { method: "DELETE" });
             fetchLogs();
         } catch (err) {
             console.error(err);
