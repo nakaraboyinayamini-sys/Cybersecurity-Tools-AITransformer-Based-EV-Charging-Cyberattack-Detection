@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transformer-Based EV Charging Cyber Attack Detection</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2306b6d4'><path d='M13 2L3 14h9l-1 8 10-12h-9l1-8z'/></svg>">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            dark: '#070b14',
+                            card: '#0d1527',
+                            border: '#1e3a66',
+                            cyan: '#06b6d4',
+                            blue: '#3b82f6',
+                            green: '#10b981',
+                            red: '#ef4444',
+                            yellow: '#f59e0b',
+                            purple: '#a855f7'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/custom.css">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Chart.js for High-Performance Interactive Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- React 18, ReactDOM, and Babel -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="bg-[#070b14] text-slate-100 min-h-screen selection:bg-cyan-500 selection:text-black">
+    <!-- Root application container -->
+    <div id="root">
+        <!-- Initial Loader while React mounts -->
+        <div class="flex flex-col items-center justify-center min-h-screen space-y-4">
+            <div class="relative w-16 h-16">
+                <div class="absolute inset-0 rounded-full border-4 border-cyan-500/20 animate-ping"></div>
+                <div class="w-16 h-16 rounded-full border-4 border-t-cyan-400 border-r-cyan-400 border-b-transparent border-l-transparent animate-spin"></div>
+            </div>
+            <div class="text-cyan-400 font-mono tracking-widest text-sm font-semibold animate-pulse">
+                INITIALIZING EV TRANSFORMER DEFENSE ENGINE...
+            </div>
+        </div>
+    </div>
+
+    <!-- Environment Configuration & API Injection -->
+    <script>
+        // Injected environment variable for production API URL, or fallback to current host
+        window.__API_BASE__ = "{{ api_base_url | default('', true) }}";
+    </script>
+
+    <!-- Application Script -->
+    <script type="text/babel" src="/static/js/app.js"></script>
+</body>
+</html>
+

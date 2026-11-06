@@ -1,0 +1,303 @@
+{
+  "model_name": "Transformer-Based EV Charging Cyber Attack Classifier",
+  "architecture": {
+    "type": "Tabular Transformer Encoder with Multi-Head Self-Attention",
+    "d_model": 32,
+    "n_heads": 4,
+    "n_layers": 2,
+    "dim_feedforward": 128,
+    "dropout": 0.1,
+    "classes": [
+      "NORMAL",
+      "DoS ATTACK",
+      "DATA TAMPERING",
+      "UNAUTHORIZED ACCESS",
+      "MALWARE ACTIVITY"
+    ],
+    "num_features": 16,
+    "feature_columns": [
+      "norm_voltage",
+      "norm_current",
+      "norm_power",
+      "norm_energy",
+      "voltage_dev",
+      "energy_rate_dev",
+      "packet_rate",
+      "request_freq",
+      "response_time_ms",
+      "auth_fail_rate",
+      "command_freq",
+      "integrity_score",
+      "traffic_intensity",
+      "session_duration",
+      "protocol_type_idx",
+      "station_load_factor"
+    ]
+  },
+  "evaluation_mode": "Prototype evaluation on synthetic dataset",
+  "training_samples": 3200,
+  "validation_samples": 800,
+  "training_duration_seconds": 48.3,
+  "overall_metrics": {
+    "accuracy": 100.0,
+    "precision": 100.0,
+    "recall": 100.0,
+    "f1_score": 100.0
+  },
+  "per_class_metrics": {
+    "NORMAL": {
+      "precision": 100.0,
+      "recall": 100.0,
+      "f1_score": 100.0,
+      "support": 160
+    },
+    "DoS ATTACK": {
+      "precision": 100.0,
+      "recall": 100.0,
+      "f1_score": 100.0,
+      "support": 160
+    },
+    "DATA TAMPERING": {
+      "precision": 100.0,
+      "recall": 100.0,
+      "f1_score": 100.0,
+      "support": 160
+    },
+    "UNAUTHORIZED ACCESS": {
+      "precision": 100.0,
+      "recall": 100.0,
+      "f1_score": 100.0,
+      "support": 160
+    },
+    "MALWARE ACTIVITY": {
+      "precision": 100.0,
+      "recall": 100.0,
+      "f1_score": 100.0,
+      "support": 160
+    }
+  },
+  "confusion_matrix": [
+    [
+      160,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      160,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      160,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      160,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      160
+    ]
+  ],
+  "confusion_matrix_labels": [
+    "NORMAL",
+    "DoS ATTACK",
+    "DATA TAMPERING",
+    "UNAUTHORIZED ACCESS",
+    "MALWARE ACTIVITY"
+  ],
+  "training_history": {
+    "epochs": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "train_loss": [
+      0.3904,
+      0.0057,
+      0.0111,
+      0.0035,
+      0.0011,
+      0.0006,
+      0.0005,
+      0.0004,
+      0.0004,
+      0.0003,
+      0.0017,
+      0.0004,
+      0.0004,
+      0.0003,
+      0.0003
+    ],
+    "val_loss": [
+      0.0052,
+      0.0012,
+      0.001,
+      0.0006,
+      0.0003,
+      0.0002,
+      0.0002,
+      0.0001,
+      0.0001,
+      0.0001,
+      0.0002,
+      0.0001,
+      0.0001,
+      0.0001,
+      0.0001
+    ],
+    "train_acc": [
+      93.12,
+      99.97,
+      99.75,
+      99.88,
+      100.0,
+      100.0,
+      100.0,
+      100.0,
+      100.0,
+      100.0,
+      99.94,
+      100.0,
+      100.0,
+      100.0,
+      100.0
+    ],
+    "val_acc": [
+      100.0,
+      100.0,
+      100.0,
+      100.0,
+      100.0,
+      100.0,
+      100.0,
+      100.0,
+      100.0,
+      100.0,
+      100.0,
+      100.0,
+      100.0,
+      100.0,
+      100.0
+    ]
+  },
+  "feature_attention_weights": {
+    "NORMAL": {
+      "norm_voltage": 3.48,
+      "norm_current": 2.13,
+      "norm_power": 1.94,
+      "norm_energy": 3.27,
+      "voltage_dev": 2.15,
+      "energy_rate_dev": 4.38,
+      "packet_rate": 2.58,
+      "request_freq": 1.41,
+      "response_time_ms": 5.8,
+      "auth_fail_rate": 1.52,
+      "command_freq": 8.88,
+      "integrity_score": 49.96,
+      "traffic_intensity": 6.37,
+      "session_duration": 1.51,
+      "protocol_type_idx": 2.62,
+      "station_load_factor": 2.01
+    },
+    "DoS ATTACK": {
+      "norm_voltage": 5.01,
+      "norm_current": 4.87,
+      "norm_power": 4.05,
+      "norm_energy": 5.75,
+      "voltage_dev": 6.69,
+      "energy_rate_dev": 7.2,
+      "packet_rate": 5.51,
+      "request_freq": 8.54,
+      "response_time_ms": 6.08,
+      "auth_fail_rate": 5.87,
+      "command_freq": 2.99,
+      "integrity_score": 5.5,
+      "traffic_intensity": 14.97,
+      "session_duration": 5.77,
+      "protocol_type_idx": 5.14,
+      "station_load_factor": 6.07
+    },
+    "DATA TAMPERING": {
+      "norm_voltage": 5.18,
+      "norm_current": 8.74,
+      "norm_power": 3.86,
+      "norm_energy": 8.24,
+      "voltage_dev": 7.99,
+      "energy_rate_dev": 7.93,
+      "packet_rate": 10.89,
+      "request_freq": 4.63,
+      "response_time_ms": 5.63,
+      "auth_fail_rate": 3.26,
+      "command_freq": 8.2,
+      "integrity_score": 7.35,
+      "traffic_intensity": 2.7,
+      "session_duration": 7.24,
+      "protocol_type_idx": 3.23,
+      "station_load_factor": 4.92
+    },
+    "UNAUTHORIZED ACCESS": {
+      "norm_voltage": 4.54,
+      "norm_current": 3.38,
+      "norm_power": 5.75,
+      "norm_energy": 4.81,
+      "voltage_dev": 3.99,
+      "energy_rate_dev": 2.81,
+      "packet_rate": 5.45,
+      "request_freq": 6.27,
+      "response_time_ms": 6.18,
+      "auth_fail_rate": 5.71,
+      "command_freq": 6.05,
+      "integrity_score": 21.26,
+      "traffic_intensity": 5.95,
+      "session_duration": 5.85,
+      "protocol_type_idx": 5.22,
+      "station_load_factor": 6.79
+    },
+    "MALWARE ACTIVITY": {
+      "norm_voltage": 0.95,
+      "norm_current": 4.86,
+      "norm_power": 0.55,
+      "norm_energy": 2.02,
+      "voltage_dev": 1.02,
+      "energy_rate_dev": 20.3,
+      "packet_rate": 13.95,
+      "request_freq": 2.39,
+      "response_time_ms": 2.69,
+      "auth_fail_rate": 1.88,
+      "command_freq": 11.25,
+      "integrity_score": 4.51,
+      "traffic_intensity": 26.16,
+      "session_duration": 2.4,
+      "protocol_type_idx": 3.32,
+      "station_load_factor": 1.76
+    }
+  },
+  "trained_at": "2026-11-01T13:32:11Z"
+}
